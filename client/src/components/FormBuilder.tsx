@@ -46,7 +46,9 @@ export const FormBuilder = () => {
     questions: [],
   });
 
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(
+    null
+  );
 
   const handleFormUpdate = (updates: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -66,7 +68,7 @@ export const FormBuilder = () => {
       questions: [...prev.questions, newQuestion],
     }));
 
-    setEditingQuestion(newQuestion);
+    setEditingQuestionId(newQuestion.id);
   };
 
   const handleQuestionUpdate = (
@@ -87,8 +89,8 @@ export const FormBuilder = () => {
       questions: prev.questions.filter((q) => q.id !== questionId),
     }));
 
-    if (editingQuestion?.id === questionId) {
-      setEditingQuestion(null);
+    if (editingQuestionId === questionId) {
+      setEditingQuestionId(null);
     }
   };
 
@@ -282,11 +284,11 @@ export const FormBuilder = () => {
                             <Card
                               key={question.id}
                               className={`p-4 bg-transparent border rounded-none cursor-pointer transition-all hover:shadow-elegant ${
-                                editingQuestion?.id === question.id
+                                editingQuestionId === question.id
                                   ? "ring-2 ring-primary"
                                   : ""
                               }`}
-                              onClick={() => setEditingQuestion(question)}
+                              onClick={() => setEditingQuestionId(question.id)}
                             >
                               <div className="flex items-start gap-3">
                                 <GripVertical className="w-5 h-5 text-muted-foreground mt-2 cursor-grab" />
@@ -327,14 +329,18 @@ export const FormBuilder = () => {
                     </div>
 
                     <div>
-                      {editingQuestion ? (
+                      {editingQuestionId ? (
                         <QuestionEditor
-                          question={editingQuestion}
+                          question={
+                            formData.questions.find(
+                              (q) => q.id === editingQuestionId
+                            )!
+                          }
                           onUpdate={(updates) =>
-                            handleQuestionUpdate(editingQuestion.id, updates)
+                            handleQuestionUpdate(editingQuestionId, updates)
                           }
                           onImageUpload={() =>
-                            handleImageUpload("question", editingQuestion.id)
+                            handleImageUpload("question", editingQuestionId)
                           }
                         />
                       ) : (
