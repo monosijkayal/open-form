@@ -12,6 +12,7 @@ import {
   Trash2,
   Image as ImageIcon,
   GripVertical,
+  Save,
 } from "lucide-react";
 import { QuestionEditor } from "./QuestionEditor";
 import { FormPreview } from "./FormPreview";
@@ -92,7 +93,6 @@ export const FormBuilder = () => {
   };
 
   const handleSaveForm = () => {
-    // In a real app, this would save to your backend/database
     localStorage.setItem(
       "formBuilder_" + formData.id,
       JSON.stringify(formData)
@@ -127,7 +127,6 @@ export const FormBuilder = () => {
     <div className="min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">Form Builder</h1>
             <p className="text-muted-foreground">
@@ -135,14 +134,13 @@ export const FormBuilder = () => {
             </p>
           </div>
 
-          {/* Main Content */}
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full border p-6"
           >
             <div className="flex justify-between items-center mb-6">
-              <TabsList className="grid w-auto grid-cols-2 border rounded-none cursor-pointer">
+              <TabsList className="grid w-auto grid-cols-2 border rounded-none bg-transparent cursor-pointer">
                 <TabsTrigger
                   value="edit"
                   className="flex items-center gap-2 rounded-none cursor-pointer"
@@ -163,6 +161,7 @@ export const FormBuilder = () => {
                 onClick={handleSaveForm}
                 className="rounded-none cursor-pointer"
               >
+                <Save className="w-4 h-4" />
                 Save Form
               </Button>
             </div>
@@ -172,7 +171,7 @@ export const FormBuilder = () => {
                 {/* Form Settings */}
                 <div className="lg:col-span-1">
                   <Card className="p-6 border bg-transparent rounded-none">
-                    <h3 className="text-lg font-semibold mb-4">
+                    <h3 className="text-lg font-semibold mb-2">
                       Form Settings
                     </h3>
 
@@ -185,7 +184,7 @@ export const FormBuilder = () => {
                           onChange={(e) =>
                             handleFormUpdate({ title: e.target.value })
                           }
-                          className="mt-1 rounded-none"
+                          className="mt-2 rounded-none"
                         />
                       </div>
 
@@ -197,7 +196,7 @@ export const FormBuilder = () => {
                           onChange={(e) =>
                             handleFormUpdate({ description: e.target.value })
                           }
-                          className="mt-1 rounded-none"
+                          className="mt-2 rounded-none"
                           rows={3}
                         />
                       </div>
@@ -207,7 +206,7 @@ export const FormBuilder = () => {
                         <Button
                           variant="outline"
                           onClick={() => handleImageUpload("header")}
-                          className="w-full mt-1 h-32 border-dashed border-2 flex flex-col rounded-none items-center justify-center gap-2 hover:bg-muted/50"
+                          className="w-full mt-2 h-32 border-dashed border-2 flex flex-col rounded-none items-center justify-center gap-2 hover:bg-muted/50"
                         >
                           <ImageIcon className="w-8 h-8 text-muted-foreground" />
                           <span className="text-sm text-muted-foreground">
@@ -228,7 +227,7 @@ export const FormBuilder = () => {
                   </Card>
 
                   <Card className="p-6 border bg-transparent rounded-none mt-6">
-                    <h3 className="text-lg font-semibold mb-4">
+                    <h3 className="text-lg font-semibold mb-2">
                       Add Questions
                     </h3>
                     <div className="space-y-2">
@@ -260,19 +259,17 @@ export const FormBuilder = () => {
                   </Card>
                 </div>
 
-                {/* Questions List & Editor */}
                 <div className="lg:col-span-2">
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    {/* Questions List */}
                     <div>
-                      <h3 className="text-lg font-semibold mb-4">
+                      <h3 className="text-lg font-semibold mb-2">
                         Questions ({formData.questions.length})
                       </h3>
 
                       {formData.questions.length === 0 ? (
                         <Card className="p-8 text-center bg-transparent border rounded-none">
                           <div className="text-muted-foreground">
-                            <Plus className="w-8 h-8 mx-auto mb-4 opacity-50" />
+                            <Plus className="w-8 h-8 mx-auto mb-2 opacity-50" />
                             <p>No questions yet</p>
                             <p className="text-sm">
                               Add your first question to get started
@@ -292,7 +289,7 @@ export const FormBuilder = () => {
                               onClick={() => setEditingQuestion(question)}
                             >
                               <div className="flex items-start gap-3">
-                                <GripVertical className="w-5 h-5 text-muted-foreground mt-1 cursor-grab" />
+                                <GripVertical className="w-5 h-5 text-muted-foreground mt-2 cursor-grab" />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-1">
                                     <span className="text-sm font-medium bg-primary/10 text-primary px-2 py-1 rounded-full">
@@ -306,7 +303,7 @@ export const FormBuilder = () => {
                                     {question.title}
                                   </h4>
                                   {question.content && (
-                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                                       {question.content}
                                     </p>
                                   )}
@@ -329,7 +326,6 @@ export const FormBuilder = () => {
                       )}
                     </div>
 
-                    {/* Question Editor */}
                     <div>
                       {editingQuestion ? (
                         <QuestionEditor
@@ -344,7 +340,7 @@ export const FormBuilder = () => {
                       ) : (
                         <Card className="p-8 text-center bg-transparent border rounded-none">
                           <div className="text-muted-foreground">
-                            <Edit3 className="w-8 h-8 mx-auto mb-4 opacity-50" />
+                            <Edit3 className="w-8 h-8 mx-auto mb-2 opacity-50" />
                             <p>Select a question to edit</p>
                             <p className="text-sm">
                               Click on any question to start editing

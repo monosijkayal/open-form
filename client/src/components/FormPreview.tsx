@@ -36,7 +36,6 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
   };
 
   const handleSubmit = () => {
-    // In a real app, this would submit to your backend
     const submissionData = {
       formId: formData.id,
       submittedAt: new Date().toISOString(),
@@ -109,8 +108,7 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Form Header */}
-      <Card className="p-8 shadow-elegant border-border/50 mb-6">
+      <Card className="p-8 rounded-none bg-transparent mb-6">
         {formData.headerImageUrl && (
           <img
             src={formData.headerImageUrl}
@@ -135,7 +133,6 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
         </div>
       </Card>
 
-      {/* Questions */}
       {formData.questions.length === 0 ? (
         <Card className="p-8 text-center shadow-soft border-border/50">
           <div className="text-muted-foreground">
@@ -174,7 +171,6 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
             </Card>
           ))}
 
-          {/* Submit Button */}
           <Card className="p-6 shadow-elegant border-border/50 bg-gradient-subtle">
             <div className="text-center">
               <Button
@@ -197,7 +193,6 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
   );
 };
 
-// Question Components
 const CategoryQuestion = ({ 
   question, 
   answer, 
