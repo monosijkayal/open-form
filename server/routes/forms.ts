@@ -7,24 +7,40 @@ const router = express.Router();
 // Create a new form
 router.post('/', async (req, res) => {
   try {
-    const formId = nanoid(6);
-    const editKey = nanoid(10);
+    const formId = nanoid(6); // internal ID
+    const editKey = nanoid(10); // edit protection key
+    const shareId = nanoid(8); // public sharing ID
 
     const form = new Form({
       formId,
       editKey,
+      shareId,
       ...req.body,
     });
 
     await form.save();
-    res.json({ formId, editKey });
+
+    const shareUrl = `http://localhost:5173/respond/${shareId}`; // Local dev link
+
+    res.json({ formId, editKey, shareId, shareUrl });
   } catch (error) {
     console.error('Create form error:', error);
     res.status(500).json({ error: 'Failed to create form' });
   }
 });
 
-// Get form by ID
+// Get form by shareId (public)
+router.get('/respond/:shareId', async (req, res) => {
+  try {
+    const form = await Form.findOne({ shareId: req.params.shareId });
+    if (!form) return res.status(404).json({ error: 'Form not found' });
+    res.json(form);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch form' });
+  }
+});
+
+// Get form by formId (internal use)
 router.get('/:formId', async (req, res) => {
   try {
     const form = await Form.findOne({ formId: req.params.formId });
@@ -52,19 +68,38 @@ router.put('/:formId', async (req, res) => {
   }
 });
 
-// ✅ Submit a response to a form
+// ✅ Submit a response to a form using shareId
+router.post('/share/:shareId/submit', async (req, res) => {
+  try {
+    const form = await Form.findOne({ shareId: req.params.shareId });
+
+    if (!form) return res.status(404).json({ error: 'Form not found' });
+
+    if (!Array.isArray(form.responses)) {
+      form.responses = [];
+    }
+
+    form.responses.push(req.body);
+    await form.save();
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Submit response error:', error);
+    res.status(500).json({ error: 'Failed to submit response' });
+  }
+});
+
+// ✅ Submit a response using formId (if needed)
 router.post('/:formId/submit', async (req, res) => {
   try {
     const form = await Form.findOne({ formId: req.params.formId });
 
     if (!form) return res.status(404).json({ error: 'Form not found' });
 
-    // Ensure form.responses exists
     if (!Array.isArray(form.responses)) {
       form.responses = [];
     }
 
-    // Push the submitted response
     form.responses.push(req.body);
     await form.save();
 

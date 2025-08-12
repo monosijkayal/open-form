@@ -29,7 +29,10 @@ export interface Question {
 }
 
 export interface FormData {
-  id: string;
+  _id?: string;
+  id?: string;
+  formId?: string;
+  shareId?: string;
   title: string;
   description: string;
   headerImageUrl?: string;
@@ -106,14 +109,20 @@ export const FormBuilder = () => {
         throw new Error(`Failed to save form: ${res.statusText}`);
       }
 
-      const { _id: formId, editKey } = await res.json();
+      const { _id: formId, editKey, shareId } = await res.json();
+
+      setFormData((prev) => ({
+        ...prev,
+        id: formId,
+        shareId,
+      }));
 
       toast({
         title: "Form Saved!",
         description: `Your form has been saved successfully. Form ID: ${formId}`,
       });
 
-      console.log("Form created:", formId, editKey);
+      console.log("Form created:", formId, editKey, shareId);
     } catch (err: any) {
       console.error(err);
       toast({
@@ -380,7 +389,7 @@ export const FormBuilder = () => {
             </TabsContent>
 
             <TabsContent value="preview" className="mt-0">
-              <FormPreview formData={formData} />
+              <FormPreview formData={formData}/>
             </TabsContent>
           </Tabs>
         </div>

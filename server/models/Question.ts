@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 
-const questionSchema = new mongoose.Schema({
+const QuestionSchema = new mongoose.Schema({
+  id: { type: String, required: true }, // to store your UUID
   type: { type: String, required: true },
-  questionText: { type: String, required: true },
+  title: String,
+  content: String,
   options: [String],
-  correctAnswers: [String],
+  correctAnswer: mongoose.Schema.Types.Mixed,
   imageUrl: String,
 }, { timestamps: true });
 
-export default mongoose.model('Question', questionSchema);
+export default QuestionSchema;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,34 +25,67 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
   const [submitted, setSubmitted] = useState(false);
 
   const handleAnswerUpdate = (questionId: string, value: string | string[]) => {
-    setAnswers(prev => {
-      const existing = prev.find(a => a.questionId === questionId);
+    setAnswers((prev) => {
+      const existing = prev.find((a) => a.questionId === questionId);
       if (existing) {
-        return prev.map(a => a.questionId === questionId ? { ...a, value } : a);
+        return prev.map((a) =>
+          a.questionId === questionId ? { ...a, value } : a
+        );
       } else {
         return [...prev, { questionId, value }];
       }
     });
   };
 
-  const handleSubmit = () => {
-    const submissionData = {
-      formId: formData.id,
-      submittedAt: new Date().toISOString(),
-      answers: answers
-    };
-    
-    localStorage.setItem(`submission_${Date.now()}`, JSON.stringify(submissionData));
-    setSubmitted(true);
-    
-    toast({
-      title: "Form Submitted!",
-      description: "Your responses have been recorded.",
-    });
+  const handleCopyLink = () => {
+    if (!formData?.shareId) return;
+    console.log("formData at copy time:", formData);
+    const publicLink = `${window.location.origin}/form/${formData.shareId}`;
+    navigator.clipboard
+      .writeText(publicLink)
+      .then(() => {
+        toast({
+          title: "Link copied!",
+          description: "Form link has been copied to your clipboard.",
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy link:", err);
+      });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/forms/share/${formData.shareId}/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ answers }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to submit");
+
+      setSubmitted(true);
+      toast({
+        title: "Form Submitted!",
+        description: "Your responses have been recorded.",
+      });
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast({
+        title: "Submission Failed",
+        description: "Something went wrong while submitting the form.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getAnswer = (questionId: string) => {
-    return answers.find(a => a.questionId === questionId)?.value || "";
+    return answers.find((a) => a.questionId === questionId)?.value || "";
   };
 
   const renderQuestion = (question: Question, index: number) => {
@@ -65,7 +98,7 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
             onAnswerChange={(value) => handleAnswerUpdate(question.id, value)}
           />
         );
-      
+
       case "cloze":
         return (
           <ClozeQuestion
@@ -74,7 +107,7 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
             onAnswerChange={(value) => handleAnswerUpdate(question.id, value)}
           />
         );
-      
+
       case "comprehension":
         return (
           <ComprehensionQuestion
@@ -83,11 +116,15 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
             onAnswerChange={(value) => handleAnswerUpdate(question.id, value)}
           />
         );
-      
+
       default:
         return null;
     }
   };
+
+  useEffect(() => {
+    console.log("FormPreview formData:", formData);
+  }, [formData]);
 
   if (submitted) {
     return (
@@ -116,17 +153,26 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
             className="w-full h-48 object-cover rounded-lg mb-6"
           />
         )}
-        
+
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold mb-2">{formData.title}</h1>
           <p className="text-muted-foreground">{formData.description}</p>
         </div>
-        
+
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+          <Badge
+            variant="outline"
+            className="bg-primary/10 text-primary border-primary/20"
+          >
             {formData.questions.length} Questions
           </Badge>
-          <Badge variant="outline" className="bg-muted">
+          <Badge
+            variant="outline"
+            className={`bg-muted cursor-pointer ${
+              !formData?.shareId ? "opacity-50 pointer-events-none" : ""
+            }`}
+            onClick={handleCopyLink}
+          >
             <ExternalLink className="w-3 h-3 mr-1" />
             Shareable Form
           </Badge>
@@ -137,16 +183,24 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
         <Card className="p-8 text-center shadow-soft border-border/50">
           <div className="text-muted-foreground">
             <p className="text-lg mb-2">No questions added yet</p>
-            <p className="text-sm">Switch to Edit mode to add questions to your form</p>
+            <p className="text-sm">
+              Switch to Edit mode to add questions to your form
+            </p>
           </div>
         </Card>
       ) : (
         <div className="space-y-6">
           {formData.questions.map((question, index) => (
-            <Card key={question.id} className="p-6 shadow-soft border-border/50 animate-fade-in">
+            <Card
+              key={question.id}
+              className="p-6 shadow-soft border-border/50 animate-fade-in"
+            >
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="outline" className="bg-primary/10 text-primary">
+                  <Badge
+                    variant="outline"
+                    className="bg-primary/10 text-primary"
+                  >
                     {index + 1}
                   </Badge>
                   <Badge variant="outline" className="capitalize">
@@ -155,7 +209,9 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{question.title}</h3>
                 {question.content && (
-                  <p className="text-muted-foreground whitespace-pre-wrap">{question.content}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">
+                    {question.content}
+                  </p>
                 )}
               </div>
 
@@ -176,14 +232,15 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
               <Button
                 onClick={handleSubmit}
                 size="lg"
-                className="bg-gradient-primary hover:opacity-90 shadow-elegant"
+                className="bg-white cursor-pointer shadow-elegant"
                 disabled={answers.length === 0}
               >
                 <Send className="w-5 h-5 mr-2" />
                 Submit Form
               </Button>
               <p className="text-sm text-muted-foreground mt-2">
-                {answers.length} of {formData.questions.length} questions answered
+                {answers.length} of {formData.questions.length} questions
+                answered
               </p>
             </div>
           </Card>
@@ -193,23 +250,28 @@ export const FormPreview = ({ formData }: FormPreviewProps) => {
   );
 };
 
-const CategoryQuestion = ({ 
-  question, 
-  answer, 
-  onAnswerChange 
-}: { 
-  question: Question; 
-  answer: string; 
+const CategoryQuestion = ({
+  question,
+  answer,
+  onAnswerChange,
+}: {
+  question: Question;
+  answer: string;
   onAnswerChange: (value: string) => void;
 }) => (
   <div>
-    <Label className="text-base font-medium mb-3 block">Select a category:</Label>
+    <Label className="text-base font-medium mb-3 block">
+      Select a category:
+    </Label>
     <RadioGroup value={answer} onValueChange={onAnswerChange}>
       {question.options?.map((option, index) => (
-        <div key={index} className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+        <div
+          key={index}
+          className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+        >
           <RadioGroupItem value={option} id={`${question.id}-${index}`} />
-          <Label 
-            htmlFor={`${question.id}-${index}`} 
+          <Label
+            htmlFor={`${question.id}-${index}`}
             className="flex-1 cursor-pointer font-medium"
           >
             {option}
@@ -220,17 +282,19 @@ const CategoryQuestion = ({
   </div>
 );
 
-const ClozeQuestion = ({ 
-  question, 
-  answer, 
-  onAnswerChange 
-}: { 
-  question: Question; 
-  answer: string; 
+const ClozeQuestion = ({
+  question,
+  answer,
+  onAnswerChange,
+}: {
+  question: Question;
+  answer: string;
   onAnswerChange: (value: string) => void;
 }) => (
   <div>
-    <Label className="text-base font-medium mb-3 block">Fill in the blanks:</Label>
+    <Label className="text-base font-medium mb-3 block">
+      Fill in the blanks:
+    </Label>
     <Textarea
       value={answer}
       onChange={(e) => onAnswerChange(e.target.value)}
@@ -243,13 +307,13 @@ const ClozeQuestion = ({
   </div>
 );
 
-const ComprehensionQuestion = ({ 
-  question, 
-  answer, 
-  onAnswerChange 
-}: { 
-  question: Question; 
-  answer: string; 
+const ComprehensionQuestion = ({
+  question,
+  answer,
+  onAnswerChange,
+}: {
+  question: Question;
+  answer: string;
   onAnswerChange: (value: string) => void;
 }) => (
   <div>
