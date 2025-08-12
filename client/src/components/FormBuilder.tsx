@@ -94,15 +94,34 @@ export const FormBuilder = () => {
     }
   };
 
-  const handleSaveForm = () => {
-    localStorage.setItem(
-      "formBuilder_" + formData.id,
-      JSON.stringify(formData)
-    );
-    toast({
-      title: "Form Saved!",
-      description: "Your form has been saved successfully.",
-    });
+  const handleSaveForm = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to save form: ${res.statusText}`);
+      }
+
+      const { _id: formId, editKey } = await res.json();
+
+      toast({
+        title: "Form Saved!",
+        description: `Your form has been saved successfully. Form ID: ${formId}`,
+      });
+
+      console.log("Form created:", formId, editKey);
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: err.message || "Something went wrong saving the form.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleImageUpload = (
